@@ -1,0 +1,20 @@
+// Global optimization examples with hayopt
+
+import("sheep-farm/hayopt", as=opt)
+
+// Golden section search on interval [-10, 10]
+// Tolerance = 0.001, 100 iterations
+let optimum = opt::golden_section_search(-10.0, 10.0, 0.001, 100)
+print("Golden section search result:", optimum)
+// Expected: close to 0.0 (minimum of x²)
+
+// Simulated annealing for global optimization
+// Starting from x = 5.0, initial temp = 100.0, cooling rate = 0.95, 100 iterations
+let sa_result = opt::simulated_annealing(5.0, 100.0, 0.95, 100)
+print("Simulated annealing result:", sa_result)
+// Expected: close to 0.0
+
+// Linear programming: maximize 2x subject to x <= 5
+let lp_result = opt::linear_programming(2.0, 1.0, 5.0)
+print("Linear programming result:", lp_result)
+// Expected: 5.0

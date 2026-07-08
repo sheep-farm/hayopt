@@ -1,0 +1,19 @@
+// Root finding examples with hayopt
+
+import("sheep-farm/hayopt", as=opt)
+
+// Find square root of 4 using Newton-Raphson
+// Starting from x = 1.0, tolerance = 0.001, 100 iterations
+let sqrt_4 = opt::newton_raphson(4.0, 1.0, 0.001, 100)
+print("Square root of 4:", sqrt_4)
+// Expected: close to 2.0
+
+// Find square root of 9 using root find
+let sqrt_9 = opt::root_find(9.0, 3.0, 0.001, 100)
+print("Square root of 9:", sqrt_9)
+// Expected: close to 3.0
+
+// Find square root of 16 using Brent's method
+let sqrt_16 = opt::brent_method(16.0, 1.0, 5.0, 0.001, 100)
+print("Square root of 16:", sqrt_16)
+// Expected: close to 4.0

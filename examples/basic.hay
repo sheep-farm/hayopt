@@ -1,0 +1,21 @@
+// Basic optimization examples with hayopt
+
+import("sheep-farm/hayopt", as=opt)
+
+// Gradient descent to minimize f(x) = x²
+// Starting from x = 10.0, learning rate = 0.1, 100 iterations
+let result = opt::minimize(10.0, 0.1, 100)
+print("Gradient descent result:", result)
+// Expected: close to 0.0
+
+// Find minimum of quadratic ax² + bx + c
+// For f(x) = x² - 4x + 3, minimum at x = 2
+let min_x = opt::optimize_quadratic(1.0, -4.0, 3.0)
+print("Quadratic minimum at:", min_x)
+// Expected: 2.0
+
+// Solve linear system Ax = b
+// For 2x = 8, solution is x = 4
+let solution = opt::optimize_linear(2.0, 8.0)
+print("Linear solution:", solution)
+// Expected: 4.0
