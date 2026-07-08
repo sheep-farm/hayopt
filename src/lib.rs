@@ -220,3 +220,78 @@ pub fn brent_method(target: f64, a: f64, b: f64, tolerance: f64, max_iterations:
     
     xb
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_minimize() {
+        // Minimize f(x) = x², starting from 10.0
+        let result = minimize(10.0, 0.1, 100);
+        assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
+    }
+
+    #[test]
+    fn test_optimize_linear() {
+        // Solve 2x = 8, should be 4.0
+        let result = optimize_linear(2.0, 8.0);
+        assert!((result - 4.0).abs() < 1e-10, "Expected 4.0, got {}", result);
+    }
+
+    #[test]
+    fn test_optimize_quadratic() {
+        // Minimum of x² - 4x + 3 is at x = 2
+        let result = optimize_quadratic(1.0, -4.0, 3.0);
+        assert!((result - 2.0).abs() < 1e-10, "Expected 2.0, got {}", result);
+    }
+
+    #[test]
+    fn test_root_find() {
+        // Find sqrt(4) = 2
+        let result = root_find(4.0, 1.0, 0.001, 100);
+        assert!((result - 2.0).abs() < 0.1, "Expected close to 2.0, got {}", result);
+    }
+
+    #[test]
+    fn test_newton_raphson() {
+        // Find sqrt(9) = 3
+        let result = newton_raphson(9.0, 3.0, 0.001, 100);
+        assert!((result - 3.0).abs() < 0.1, "Expected close to 3.0, got {}", result);
+    }
+
+    #[test]
+    fn test_gradient_descent() {
+        // Minimize f(x) = x², starting from 5.0
+        let result = gradient_descent(5.0, 0.1, 100);
+        assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
+    }
+
+    #[test]
+    fn test_simulated_annealing() {
+        // Should converge to 0.0
+        let result = simulated_annealing(5.0, 100.0, 0.95, 100);
+        assert!((result - 0.0).abs() < 1.0, "Expected close to 0.0, got {}", result);
+    }
+
+    #[test]
+    fn test_linear_programming() {
+        // Maximize 2x subject to x <= 5, should be 5.0
+        let result = linear_programming(2.0, 1.0, 5.0);
+        assert!((result - 5.0).abs() < 0.1, "Expected 5.0, got {}", result);
+    }
+
+    #[test]
+    fn test_golden_section_search() {
+        // Find minimum of x² on [-10, 10], should be 0.0
+        let result = golden_section_search(-10.0, 10.0, 0.001, 100);
+        assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
+    }
+
+    #[test]
+    fn test_brent_method() {
+        // Find sqrt(16) = 4
+        let result = brent_method(16.0, 1.0, 5.0, 0.001, 100);
+        assert!((result - 4.0).abs() < 0.1, "Expected close to 4.0, got {}", result);
+    }
+}
