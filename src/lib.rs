@@ -13,13 +13,13 @@ hayashi_plugin!();
 pub fn minimize(x0: f64, learning_rate: f64, iterations: i64) -> f64 {
     let mut x = x0;
     let lr = learning_rate;
-    
+
     for _ in 0..iterations {
         // Simple gradient: f'(x) ≈ 2x for f(x) = x²
         let gradient = 2.0 * x;
         x -= lr * gradient;
     }
-    
+
     x
 }
 
@@ -57,7 +57,7 @@ pub fn optimize_quadratic(a: f64, b: f64, _c: f64) -> f64 {
 pub fn root_find(target: f64, x0: f64, tolerance: f64, max_iterations: i64) -> f64 {
     let mut x = x0;
     let tol = tolerance;
-    
+
     for _ in 0..max_iterations {
         let fx = x * x - target;
         if fx.abs() < tol {
@@ -69,7 +69,7 @@ pub fn root_find(target: f64, x0: f64, tolerance: f64, max_iterations: i64) -> f
         }
         x = x - fx / (2.0 * x);
     }
-    
+
     x
 }
 
@@ -82,7 +82,7 @@ pub fn root_find(target: f64, x0: f64, tolerance: f64, max_iterations: i64) -> f
 pub fn newton_raphson(target: f64, x0: f64, tolerance: f64, max_iterations: i64) -> f64 {
     let mut x = x0;
     let tol = tolerance;
-    
+
     for _ in 0..max_iterations {
         let fx = x * x - target;
         if fx.abs() < tol {
@@ -94,7 +94,7 @@ pub fn newton_raphson(target: f64, x0: f64, tolerance: f64, max_iterations: i64)
         }
         x -= fx / dfx;
     }
-    
+
     x
 }
 
@@ -105,12 +105,12 @@ pub fn newton_raphson(target: f64, x0: f64, tolerance: f64, max_iterations: i64)
 pub fn gradient_descent(x0: f64, learning_rate: f64, iterations: i64) -> f64 {
     let mut x = x0;
     let lr = learning_rate;
-    
+
     for _ in 0..iterations {
         let gradient = 2.0 * x;
         x -= lr * gradient;
     }
-    
+
     x
 }
 
@@ -134,7 +134,10 @@ pub fn simulated_annealing(x0: f64, initial_temp: f64, cooling_rate: f64, iterat
         x0.to_bits().hash(&mut h);
         h.finish()
     };
-    let lcg_next = |s: u64| s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    let lcg_next = |s: u64| {
+        s.wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407)
+    };
     let lcg_f64 = |s: u64| (s >> 11) as f64 / (1u64 << 53) as f64; // ∈ [0, 1)
 
     for _ in 0..iterations {
@@ -188,15 +191,15 @@ pub fn golden_section_search(a: f64, b: f64, tolerance: f64, max_iterations: i64
     let mut x1 = left + (1.0 - golden_ratio) * (right - left);
     let mut x2 = left + golden_ratio * (right - left);
     let tol = tolerance;
-    
+
     for _ in 0..max_iterations {
         if (right - left).abs() < tol {
             break;
         }
-        
+
         let f1 = x1 * x1; // f(x) = x²
         let f2 = x2 * x2;
-        
+
         if f1 < f2 {
             right = x2;
             x2 = x1;
@@ -207,7 +210,7 @@ pub fn golden_section_search(a: f64, b: f64, tolerance: f64, max_iterations: i64
             x2 = left + golden_ratio * (right - left);
         }
     }
-    
+
     (left + right) / 2.0
 }
 
@@ -219,21 +222,21 @@ pub fn brent_method(target: f64, a: f64, b: f64, tolerance: f64, max_iterations:
     let mut xa = a;
     let mut xb = b;
     let tol = tolerance;
-    
+
     for _ in 0..max_iterations {
         let fa = xa * xa - target;
         let fb = xb * xb - target;
-        
+
         if (fb - fa).abs() < tol {
             break;
         }
-        
+
         // Secant method step
         let xc = xb - fb * (xb - xa) / (fb - fa);
         xa = xb;
         xb = xc;
     }
-    
+
     xb
 }
 
@@ -247,7 +250,11 @@ mod tests {
     fn test_minimize() {
         // Minimize f(x) = x², starting from 10.0
         let result = __hayashi_impl_minimize(10.0, 0.1, 100);
-        assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
+        assert!(
+            (result - 0.0).abs() < 0.1,
+            "Expected close to 0.0, got {}",
+            result
+        );
     }
 
     #[test]
@@ -268,28 +275,44 @@ mod tests {
     fn test_root_find() {
         // Find sqrt(4) = 2
         let result = __hayashi_impl_root_find(4.0, 1.0, 0.001, 100);
-        assert!((result - 2.0).abs() < 0.1, "Expected close to 2.0, got {}", result);
+        assert!(
+            (result - 2.0).abs() < 0.1,
+            "Expected close to 2.0, got {}",
+            result
+        );
     }
 
     #[test]
     fn test_newton_raphson() {
         // Find sqrt(9) = 3
         let result = __hayashi_impl_newton_raphson(9.0, 3.0, 0.001, 100);
-        assert!((result - 3.0).abs() < 0.1, "Expected close to 3.0, got {}", result);
+        assert!(
+            (result - 3.0).abs() < 0.1,
+            "Expected close to 3.0, got {}",
+            result
+        );
     }
 
     #[test]
     fn test_gradient_descent() {
         // Minimize f(x) = x², starting from 5.0
         let result = __hayashi_impl_gradient_descent(5.0, 0.1, 100);
-        assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
+        assert!(
+            (result - 0.0).abs() < 0.1,
+            "Expected close to 0.0, got {}",
+            result
+        );
     }
 
     #[test]
     fn test_simulated_annealing() {
         // Should converge to 0.0
         let result = __hayashi_impl_simulated_annealing(5.0, 100.0, 0.95, 100);
-        assert!((result - 0.0).abs() < 1.0, "Expected close to 0.0, got {}", result);
+        assert!(
+            (result - 0.0).abs() < 1.0,
+            "Expected close to 0.0, got {}",
+            result
+        );
     }
 
     #[test]
@@ -303,13 +326,21 @@ mod tests {
     fn test_golden_section_search() {
         // Find minimum of x² on [-10, 10], should be 0.0
         let result = __hayashi_impl_golden_section_search(-10.0, 10.0, 0.001, 100);
-        assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
+        assert!(
+            (result - 0.0).abs() < 0.1,
+            "Expected close to 0.0, got {}",
+            result
+        );
     }
 
     #[test]
     fn test_brent_method() {
         // Find sqrt(16) = 4
         let result = __hayashi_impl_brent_method(16.0, 1.0, 5.0, 0.001, 100);
-        assert!((result - 4.0).abs() < 0.1, "Expected close to 4.0, got {}", result);
+        assert!(
+            (result - 4.0).abs() < 0.1,
+            "Expected close to 4.0, got {}",
+            result
+        );
     }
 }
