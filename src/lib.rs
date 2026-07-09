@@ -1,3 +1,4 @@
+#![allow(clippy::not_unsafe_ptr_arg_deref)]
 use hayashi_plugin_sdk::{hayashi_fn, hayashi_plugin};
 
 hayashi_plugin!();
@@ -16,7 +17,7 @@ pub fn minimize(x0: f64, learning_rate: f64, iterations: i64) -> f64 {
     for _ in 0..iterations {
         // Simple gradient: f'(x) ≈ 2x for f(x) = x²
         let gradient = 2.0 * x;
-        x = x - lr * gradient;
+        x -= lr * gradient;
     }
     
     x
@@ -91,7 +92,7 @@ pub fn newton_raphson(target: f64, x0: f64, tolerance: f64, max_iterations: i64)
         if dfx.abs() < 1e-10 {
             break;
         }
-        x = x - fx / dfx;
+        x -= fx / dfx;
     }
     
     x
@@ -107,41 +108,56 @@ pub fn gradient_descent(x0: f64, learning_rate: f64, iterations: i64) -> f64 {
     
     for _ in 0..iterations {
         let gradient = 2.0 * x;
-        x = x - lr * gradient;
+        x -= lr * gradient;
     }
     
     x
 }
 
-/// 7. simulated_annealing(f, x0, initial_temp, cooling_rate, iterations)
-/// Simulated annealing for global optimization
-/// f: objective function (simplified)
+/// 7. simulated_annealing(x0, initial_temp, cooling_rate, iterations)
+/// Simulated annealing minimizing f(x) = x² (demo target).
 /// x0: initial point
-/// initial_temp: starting temperature
-/// cooling_rate: temperature decay factor
+/// initial_temp: starting temperature (> 0)
+/// cooling_rate: temperature decay factor ∈ (0, 1)
 /// iterations: number of iterations
 #[hayashi_fn]
 pub fn simulated_annealing(x0: f64, initial_temp: f64, cooling_rate: f64, iterations: i64) -> f64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
     let mut x = x0;
     let mut temp = initial_temp;
-    let cooling = cooling_rate;
-    
+
+    // Deterministic pseudo-random via a hash-based LCG (no external RNG dep needed here)
+    let mut state: u64 = {
+        let mut h = DefaultHasher::new();
+        x0.to_bits().hash(&mut h);
+        h.finish()
+    };
+    let lcg_next = |s: u64| s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    let lcg_f64 = |s: u64| (s >> 11) as f64 / (1u64 << 53) as f64; // ∈ [0, 1)
+
     for _ in 0..iterations {
-        // Simple random perturbation (in real implementation, use proper RNG)
-        let perturbation = (temp / initial_temp) * 0.1;
+        state = lcg_next(state);
+        // Symmetric perturbation ∈ [-step, +step]
+        let step = temp.sqrt().min(1.0);
+        let perturbation = (lcg_f64(state) * 2.0 - 1.0) * step;
         let new_x = x + perturbation;
-        
-        // Accept if better (simplified Metropolis criterion)
-        let current_cost = x * x;
-        let new_cost = new_x * new_x;
-        
-        if new_cost < current_cost {
+
+        let delta = new_x * new_x - x * x;
+        if delta < 0.0 {
             x = new_x;
+        } else {
+            state = lcg_next(state);
+            let u = lcg_f64(state);
+            if u < (-delta / temp).exp() {
+                x = new_x;
+            }
         }
-        
-        temp *= cooling;
+
+        temp *= cooling_rate;
     }
-    
+
     x
 }
 
@@ -225,73 +241,75 @@ pub fn brent_method(target: f64, a: f64, b: f64, tolerance: f64, max_iterations:
 mod tests {
     use super::*;
 
+    // #[hayashi_fn] renomeia a fn original para __hayashi_impl_<nome>.
+
     #[test]
     fn test_minimize() {
         // Minimize f(x) = x², starting from 10.0
-        let result = minimize(10.0, 0.1, 100);
+        let result = __hayashi_impl_minimize(10.0, 0.1, 100);
         assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
     }
 
     #[test]
     fn test_optimize_linear() {
         // Solve 2x = 8, should be 4.0
-        let result = optimize_linear(2.0, 8.0);
+        let result = __hayashi_impl_optimize_linear(2.0, 8.0);
         assert!((result - 4.0).abs() < 1e-10, "Expected 4.0, got {}", result);
     }
 
     #[test]
     fn test_optimize_quadratic() {
         // Minimum of x² - 4x + 3 is at x = 2
-        let result = optimize_quadratic(1.0, -4.0, 3.0);
+        let result = __hayashi_impl_optimize_quadratic(1.0, -4.0, 3.0);
         assert!((result - 2.0).abs() < 1e-10, "Expected 2.0, got {}", result);
     }
 
     #[test]
     fn test_root_find() {
         // Find sqrt(4) = 2
-        let result = root_find(4.0, 1.0, 0.001, 100);
+        let result = __hayashi_impl_root_find(4.0, 1.0, 0.001, 100);
         assert!((result - 2.0).abs() < 0.1, "Expected close to 2.0, got {}", result);
     }
 
     #[test]
     fn test_newton_raphson() {
         // Find sqrt(9) = 3
-        let result = newton_raphson(9.0, 3.0, 0.001, 100);
+        let result = __hayashi_impl_newton_raphson(9.0, 3.0, 0.001, 100);
         assert!((result - 3.0).abs() < 0.1, "Expected close to 3.0, got {}", result);
     }
 
     #[test]
     fn test_gradient_descent() {
         // Minimize f(x) = x², starting from 5.0
-        let result = gradient_descent(5.0, 0.1, 100);
+        let result = __hayashi_impl_gradient_descent(5.0, 0.1, 100);
         assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
     }
 
     #[test]
     fn test_simulated_annealing() {
         // Should converge to 0.0
-        let result = simulated_annealing(5.0, 100.0, 0.95, 100);
+        let result = __hayashi_impl_simulated_annealing(5.0, 100.0, 0.95, 100);
         assert!((result - 0.0).abs() < 1.0, "Expected close to 0.0, got {}", result);
     }
 
     #[test]
     fn test_linear_programming() {
         // Maximize 2x subject to x <= 5, should be 5.0
-        let result = linear_programming(2.0, 1.0, 5.0);
+        let result = __hayashi_impl_linear_programming(2.0, 1.0, 5.0);
         assert!((result - 5.0).abs() < 0.1, "Expected 5.0, got {}", result);
     }
 
     #[test]
     fn test_golden_section_search() {
         // Find minimum of x² on [-10, 10], should be 0.0
-        let result = golden_section_search(-10.0, 10.0, 0.001, 100);
+        let result = __hayashi_impl_golden_section_search(-10.0, 10.0, 0.001, 100);
         assert!((result - 0.0).abs() < 0.1, "Expected close to 0.0, got {}", result);
     }
 
     #[test]
     fn test_brent_method() {
         // Find sqrt(16) = 4
-        let result = brent_method(16.0, 1.0, 5.0, 0.001, 100);
+        let result = __hayashi_impl_brent_method(16.0, 1.0, 5.0, 0.001, 100);
         assert!((result - 4.0).abs() < 0.1, "Expected close to 4.0, got {}", result);
     }
 }

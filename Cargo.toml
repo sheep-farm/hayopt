@@ -1,9 +1,10 @@
 [package]
 name = "hayopt"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Optimization plugin for Hayashi"
 license = "MIT"
+repository = "https://github.com/sheep-farm/hayopt"
 
 [lib]
 crate-type = ["cdylib"]
@@ -11,3 +12,9 @@ crate-type = ["cdylib"]
 [dependencies]
 hayashi-plugin-sdk = { git = "https://github.com/sheep-farm/hayashi-plugin-sdk.git", branch = "main" }
 faer = "0.19"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = "symbols"
+panic = "abort"
